@@ -36,6 +36,9 @@ use TelegramOSINT\TLMessage\TLMessage\ClientMessages\init_connection;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\input_notify_chats;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\input_notify_users;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\invoke_with_layer;
+use TelegramOSINT\TLMessage\TLMessage\ClientMessages\json_object;
+use TelegramOSINT\TLMessage\TLMessage\ClientMessages\json_object_value;
+use TelegramOSINT\TLMessage\TLMessage\ClientMessages\json_string;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\send_sms_code;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\sign_in;
 use TelegramOSINT\TLMessage\TLMessage\ClientMessages\sign_up;
@@ -128,7 +131,13 @@ class RegistrationFromTgApp implements RegisterInterface, MessageListener
     {
         // config
         $getConfig = new get_config();
-        $initConnection = new init_connection($this->accountInfo, $getConfig);
+        // @see https://github.com/DrKLO/Telegram/blob/master/TMessagesProj/jni/tgnet/MTProtoScheme.cpp#L1103
+        $params = new json_object([
+            new json_object_value('device_token', new json_string('__FIREBASE_GENERATING_SINCE_'.time().'__')),
+            // sha256
+            new json_object_value('data', new json_string('07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc')),
+        ]);
+        $initConnection = new init_connection($this->accountInfo, $getConfig, $params);
         $invokeWithLayer = new invoke_with_layer(LibConfig::APP_DEFAULT_TL_LAYER_VERSION, $initConnection);
 
         $this->socketMessenger->getResponseAsync($invokeWithLayer, function (AnonymousMessage $configRequest) use ($onLastMessageReceived) {
