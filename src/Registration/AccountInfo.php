@@ -33,7 +33,6 @@ class AccountInfo
 
     private function __construct()
     {
-
     }
 
     /**
@@ -180,18 +179,22 @@ class AccountInfo
         return $this->layerVersion;
     }
 
-    /**
-     * @param string $firstName
-     */
-    public function setFirstName($firstName)
+    public function setDeviceModel(string $deviceModel): void
+    {
+        $this->device = $deviceModel;
+    }
+
+    public function setSdkVersion(string $version): void
+    {
+        $this->androidSdkVersion = $version;
+    }
+
+    public function setFirstName(string $firstName): void
     {
         $this->firstName = $firstName;
     }
 
-    /**
-     * @param string $lastName
-     */
-    public function setLastName($lastName)
+    public function setLastName(string $lastName): void
     {
         $this->lastName = $lastName;
     }

@@ -53,7 +53,7 @@ class TGException extends Exception
     const ERR_DESERIALIZER_BROKEN_BINARY_READ                                  = 403000;
     const ERR_DESERIALIZER_VECTOR_EXPECTED                                     = 404000;
 
-    // deserialized message to object convertion problems
+    // deserialized message to object conversion problems
     const ERR_TL_MESSAGE_FIELD_NOT_EXISTS                                      = 500000;
     const ERR_TL_MESSAGE_FIELD_BAD_NODE                                        = 501000;
     const ERR_TL_MESSAGE_UNEXPECTED_OBJECT                                     = 502000;
@@ -94,6 +94,8 @@ class TGException extends Exception
     const ERR_ASSERT_UPDATE_EXPIRES_TIME_LONG                                  = 902000;
     const ERR_ASSERT_LISTENER_ALREADY_SET                                      = 905000;
     const ERR_ASSERT_UNKNOWN_HIDDEN_STATUS                                     = 906000;
+    const ERR_ASSERT_MESSAGE_ID_GET_ONCE                                       = 907000;
+    const ERR_ASSERT_BIND_KEY_LENGTH_VALID                                     = 908000;
 
     // proxy errors
     const ERR_PROXY_WRONG_PROXY_TYPE                                           = 1000000;

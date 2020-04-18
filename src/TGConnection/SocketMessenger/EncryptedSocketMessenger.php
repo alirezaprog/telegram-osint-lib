@@ -100,8 +100,9 @@ class EncryptedSocketMessenger extends TgSocketMessenger implements SocketMessen
      * @param Socket          $socket
      * @param AuthKey         $authKey
      * @param MessageListener $callback
+     * @param string|null     $sessionId
      */
-    public function __construct(Socket $socket, AuthKey $authKey, MessageListener $callback)
+    public function __construct(Socket $socket, AuthKey $authKey, MessageListener $callback, ?string $sessionId = null)
     {
         parent::__construct($socket);
         $this->messageReceiptCallback = $callback;
@@ -109,7 +110,7 @@ class EncryptedSocketMessenger extends TgSocketMessenger implements SocketMessen
         $this->msg_seqno = 0;
 
         $this->salt = openssl_random_pseudo_bytes(8);
-        $this->sessionId = openssl_random_pseudo_bytes(8);
+        $this->sessionId = $sessionId ?: openssl_random_pseudo_bytes(8);
         $this->authKey = $authKey->getRawAuthKey();
         $this->authKeyId = substr(sha1($this->authKey, true), -8);
         $this->authKeyObj = $authKey;
@@ -181,12 +182,13 @@ class EncryptedSocketMessenger extends TgSocketMessenger implements SocketMessen
      */
     private function decryptPayload(string $payload)
     {
+        $origPayload = $payload;
         $authKeyId = substr($payload, 0, 8);
         $msgKey = substr($payload, 8, 16);
         $payload = substr($payload, 24);
 
         if(strcmp($authKeyId, $this->authKeyId) != 0)
-            throw new TGException(TGException::ERR_TL_CONTAINER_BAD_AUTHKEY_ID);
+            throw new TGException(TGException::ERR_TL_CONTAINER_BAD_AUTHKEY_ID, bin2hex($origPayload));
         list($aes_key, $aes_iv) = $this->aes_calculate($msgKey, $this->authKey, false);
         $decryptedPayload = $this->aes->decryptIgeMode($payload, $aes_key, $aes_iv);
 

@@ -102,10 +102,10 @@ class RegistrationFromTgApp implements RegisterInterface, MessageListener
         $phoneNumber = trim($phoneNumber);
 
         $this->phone = $phoneNumber;
-        $this->requestBlankAuthKey(function (AuthKey $authKey) use ($phoneNumber, $cb) {
+        $this->requestBlankAuthKey(function (AuthKey $authKey, string $sessionId) use ($phoneNumber, $cb) {
             $this->blankAuthKey = $authKey;
 
-            $this->initSocketMessenger();
+            $this->initSocketMessenger($sessionId);
             $this->initSocketAsOfficialApp(function () use ($phoneNumber, $cb) {
                 $request = new send_sms_code($phoneNumber);
                 $this->socketMessenger->getResponseAsync($request, function (AnonymousMessage $smsSentResponse) use ($cb) {
@@ -132,16 +132,18 @@ class RegistrationFromTgApp implements RegisterInterface, MessageListener
         // config
         $getConfig = new get_config();
         // @see https://github.com/DrKLO/Telegram/blob/master/TMessagesProj/jni/tgnet/MTProtoScheme.cpp#L1103
+        //$hash = hash('sha256', rand(1, 10000).'sadgsdgerhew54635634s');
+        $hash = '49C1522548EBACD46CE322B6FD47F6092BB745D0F88082145CAF35E14DCC38E1';
         $params = new json_object([
             new json_object_value('device_token', new json_string('__FIREBASE_GENERATING_SINCE_'.time().'__')),
             // sha256
-            new json_object_value('data', new json_string('07123e1f482356c415f684407a3b8723e10b2cbbc0b8fcd6282c49d37c9c1abc')),
+            new json_object_value('data', new json_string(strtoupper($hash))),
         ]);
-        $initConnection = new init_connection($this->accountInfo, $getConfig, $params);
+        $initConnection = new init_connection($this->accountInfo, $getConfig, $params, 1024);
         $invokeWithLayer = new invoke_with_layer(LibConfig::APP_DEFAULT_TL_LAYER_VERSION, $initConnection);
 
-        $this->socketMessenger->getResponseAsync($invokeWithLayer, function (AnonymousMessage $configRequest) use ($onLastMessageReceived) {
-            new DcConfigApp($configRequest);
+        $this->socketMessenger->getResponseAsync($invokeWithLayer, function (AnonymousMessage $configResponse) use ($onLastMessageReceived) {
+            new DcConfigApp($configResponse);
 
             // possible languages
             $getLanguages = new get_languages();
@@ -158,15 +160,17 @@ class RegistrationFromTgApp implements RegisterInterface, MessageListener
     }
 
     /**
+     * @param string $sessionId
+     *
      * @throws TGException
      */
-    private function initSocketMessenger(): void
+    private function initSocketMessenger(string $sessionId): void
     {
         $socket = $this->proxy instanceof Proxy ?
             new ProxySocket($this->proxy, DataCentre::getDefault()) :
             new TcpSocket(DataCentre::getDefault());
 
-        $this->socketMessenger = new EncryptedSocketMessenger($socket, $this->blankAuthKey, $this);
+        $this->socketMessenger = new EncryptedSocketMessenger($socket, $this->blankAuthKey, $this, $sessionId);
     }
 
     /**
@@ -177,7 +181,7 @@ class RegistrationFromTgApp implements RegisterInterface, MessageListener
     private function requestBlankAuthKey(callable $cb): void
     {
         $dc = DataCentre::getDefault();
-        (new AppAuthorization($dc))->createAuthKey($cb);
+        (new AppAuthorization($dc))->createAuthKey($cb, true);
     }
 
     /**
