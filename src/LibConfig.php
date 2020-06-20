@@ -37,8 +37,8 @@ class LibConfig
     /* ================================================================ Api keys */
 
     // Official App
-    public const APP_API_HASH = '014b35b6184100b085b0d0572f9b5103';
-    public const APP_API_ID = 4;
+    public const APP_API_HASH = '683fed8c0749963e905ec465ec22ef82';
+    public const APP_API_ID = 453082;
     public const APP_CERT_SHA256 = '49C1522548EBACD46CE322B6FD47F6092BB745D0F88082145CAF35E14DCC38E1';
     public const APP_TZ_START = 0;
 
